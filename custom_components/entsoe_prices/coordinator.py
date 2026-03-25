@@ -116,7 +116,10 @@ class EntsoeCoordinator(DataUpdateCoordinator[PriceData]):
         """Read current RCE price from HA sensor (PLN/MWh)."""
         state = self.hass.states.get(self._rce_entity)
         if state is None:
-            _LOGGER.warning("RCE entity %s not found in HA states", self._rce_entity)
+            _LOGGER.debug(
+                "RCE entity %s not yet available — spread will activate when it appears",
+                self._rce_entity,
+            )
             return None
         if state.state in ("unavailable", "unknown"):
             _LOGGER.debug(
