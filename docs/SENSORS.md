@@ -48,7 +48,7 @@ ENTSO-E API (XML A44)
 ```
 
 **Źródło danych:** ENTSO-E Transparency Platform → endpoint A44 (Day-Ahead Prices)  
-**Odświeżanie:** co 30 minut  
+**Odświeżanie:** co 30 minut (ENTSO-E API) + real-time (RCE state listener)  
 **Waluta bazowa:** EUR/MWh → konwersja na PLN/kWh (lub inna konfiguracja)
 
 ---
@@ -57,15 +57,15 @@ ENTSO-E API (XML A44)
 
 | Entity ID | Nazwa PL | Opis | Jednostka |
 |-----------|----------|------|-----------|
-| `sensor.entsoe_current_price` | ⚡ Aktualna cena energii | Cena hurtowa w bieżącej godzinie | PLN/kWh |
-| `sensor.entsoe_next_hour_price` | ⏭️ Cena za następną godzinę | Cena hurtowa na kolejną godzinę | PLN/kWh |
-| `sensor.entsoe_today_min` | 📉 Minimum dzisiaj | Najniższa cena dnia | PLN/kWh |
-| `sensor.entsoe_today_max` | 📈 Maksimum dzisiaj | Najwyższa cena dnia | PLN/kWh |
-| `sensor.entsoe_today_avg` | 📊 Średnia dzisiaj | Średnia arytmetyczna cen dnia | PLN/kWh |
+| `sensor.entso_e_aktualna_cena_energii` | ⚡ Aktualna cena energii | Cena hurtowa w bieżącej godzinie | PLN/kWh |
+| `sensor.entso_e_cena_za_nastepna_godzine` | ⏭️ Cena za następną godzinę | Cena hurtowa na kolejną godzinę | PLN/kWh |
+| `sensor.entso_e_minimum_dzisiaj` | 📉 Minimum dzisiaj | Najniższa cena dnia | PLN/kWh |
+| `sensor.entso_e_maksimum_dzisiaj` | 📈 Maksimum dzisiaj | Najwyższa cena dnia | PLN/kWh |
+| `sensor.entso_e_srednia_dzisiaj` | 📊 Średnia dzisiaj | Średnia arytmetyczna cen dnia | PLN/kWh |
 
-### Atrybuty `current_price`
+### Atrybuty `aktualna_cena_energii`
 
-Sensor `current_price` posiada rozbudowane atrybuty:
+Sensor aktualnej ceny posiada rozbudowane atrybuty:
 
 ```yaml
 prices_today:          # Lista wszystkich cen na dziś
@@ -86,6 +86,17 @@ today_max_hour: "18:00"
 cheapest_hours_start: "02:00"
 cheapest_hours_end: "05:00"
 cheapest_hours_avg: 0.2234
+cheapest_2h_start: "08:00"
+cheapest_2h_end: "10:00"
+cheapest_4h_start: "08:00"
+cheapest_4h_end: "12:00"
+most_expensive_3h_start: "18:00"
+most_expensive_3h_end: "21:00"
+most_expensive_2h_start: "18:00"
+most_expensive_2h_end: "20:00"
+rank_current_hour: 6
+total_hours_today: 24
+percentile_current_hour: 21.7
 ```
 
 > ℹ️ **Cena hurtowa** to cena z ENTSO-E day-ahead przeliczona na PLN/kWh z uwzględnieniem VAT i kursu NBP. **NIE** zawiera marży sprzedawcy, akcyzy ani dystrybucji — do tego służą sensory all-in.
@@ -98,10 +109,10 @@ Koszt „all-in" to realny koszt zakupu 1 kWh energii z sieci, uwzględniający 
 
 | Entity ID | Nazwa PL | Opis |
 |-----------|----------|------|
-| `sensor.entsoe_all_in_cost_now` | 💵 Koszt all-in teraz | Pełny koszt zakupu w bieżącej godzinie |
-| `sensor.entsoe_all_in_cost_next_hour` | 💵 Koszt all-in następna h | Pełny koszt na kolejną godzinę |
-| `sensor.entsoe_all_in_min_today` | ⬇️ Koszt all-in min dzisiaj | Najniższy pełny koszt dnia |
-| `sensor.entsoe_all_in_max_today` | ⬆️ Koszt all-in max dzisiaj | Najwyższy pełny koszt dnia |
+| `sensor.entso_e_koszt_all_in_teraz` | 💵 Koszt all-in teraz | Pełny koszt zakupu w bieżącej godzinie |
+| `sensor.entso_e_koszt_all_in_nastepna_h` | 💵 Koszt all-in następna h | Pełny koszt na kolejną godzinę |
+| `sensor.entso_e_koszt_all_in_min_dzisiaj` | ⬇️ Koszt all-in min dzisiaj | Najniższy pełny koszt dnia |
+| `sensor.entso_e_koszt_all_in_max_dzisiaj` | ⬆️ Koszt all-in max dzisiaj | Najwyższy pełny koszt dnia |
 
 ### Wzór all-in
 
@@ -133,18 +144,18 @@ Okna cenowe to najlepsze/najgorsze **N kolejnych godzin** w ciągu dnia — kluc
 
 | Entity ID | Nazwa PL | Opis |
 |-----------|----------|------|
-| `sensor.entsoe_cheapest_2h_avg` | 💰 Najtańsze 2h | Średnia cena w najtańszym 2h oknie |
-| `sensor.entsoe_cheapest_hours_avg` | 💰 Najtańsze 3h | Średnia cena w najtańszym 3h oknie |
-| `sensor.entsoe_cheapest_4h_avg` | 💰 Najtańsze 4h | Średnia cena w najtańszym 4h oknie |
+| `sensor.entso_e_najtansze_2h_srednia` | 💰 Najtańsze 2h | Średnia cena w najtańszym 2h oknie |
+| `sensor.entso_e_najtansze_3h_srednia` | 💰 Najtańsze 3h | Średnia cena w najtańszym 3h oknie |
+| `sensor.entso_e_najtansze_4h_srednia` | 💰 Najtańsze 4h | Średnia cena w najtańszym 4h oknie |
 
 ### Najdroższe okna (sprzedaż)
 
 | Entity ID | Nazwa PL | Opis |
 |-----------|----------|------|
-| `sensor.entsoe_most_expensive_2h_avg` | 📈 Najdroższe 2h | Średnia cena w najdroższym 2h oknie |
-| `sensor.entsoe_most_expensive_3h_avg` | 📈 Najdroższe 3h | Średnia cena w najdroższym 3h oknie |
+| `sensor.entso_e_najdrozsze_2h_srednia` | 📈 Najdroższe 2h | Średnia cena w najdroższym 2h oknie |
+| `sensor.entso_e_najdrozsze_3h_srednia` | 📈 Najdroższe 3h | Średnia cena w najdroższym 3h oknie |
 
-> Każdy sensor okna posiada atrybuty `start` i `end` (godziny lokalne), np. `cheapest_hours_start: "02:00"`, `cheapest_hours_end: "05:00"`.
+> Godziny start/end dla każdego okna są widoczne w atrybutach sensora `aktualna_cena_energii`.
 
 ### Algorytm
 
@@ -165,8 +176,8 @@ for i in range(len(prices) - n + 1):
 
 | Entity ID | Nazwa PL | Opis | Jednostka |
 |-----------|----------|------|-----------|
-| `sensor.entsoe_rank_current_hour` | 🔢 Ranking godziny | Pozycja bieżącej ceny (1 = najtańsza) | / 24 |
-| `sensor.entsoe_percentile_current_hour` | 📊 Percentyl godziny | Percentyl cenowy (0% = najtaniej, 100% = najdrożej) | % |
+| `sensor.entso_e_ranking_biezacej_godziny` | 🔢 Ranking godziny | Pozycja bieżącej ceny (1 = najtańsza) | / 24 |
+| `sensor.entso_e_percentyl_biezacej_godziny` | 📊 Percentyl godziny | Percentyl cenowy (0% = najtaniej, 100% = najdrożej) | % |
 
 **Interpretacja:**
 - Rank `3/24` = trzecia najtańsza godzina dnia
@@ -176,8 +187,8 @@ for i in range(len(prices) - n + 1):
 
 | Entity ID | Nazwa PL | Opis |
 |-----------|----------|------|
-| `sensor.entsoe_delta_1h` | Δ Zmiana ceny +1h | Różnica: cena za godzinę − cena teraz |
-| `sensor.entsoe_delta_3h` | Δ Zmiana ceny +3h | Różnica: cena za 3 godziny − cena teraz |
+| `sensor.entso_e_zmiana_ceny_1h` | Δ Zmiana ceny +1h | Różnica: cena za godzinę − cena teraz |
+| `sensor.entso_e_zmiana_ceny_3h` | Δ Zmiana ceny +3h | Różnica: cena za 3 godziny − cena teraz |
 
 **Interpretacja:**
 - `delta_1h = +0.15` → cena wzrośnie o 0.15 PLN/kWh za godzinę
@@ -189,16 +200,16 @@ for i in range(len(prices) - n + 1):
 
 | Entity ID | Nazwa PL | ON gdy... | Ikona ON | Ikona OFF |
 |-----------|----------|-----------|----------|-----------|
-| `binary_sensor.entsoe_trend_up_3h` | 📈 Trend rosnący 3h | Ceny rosną przez 3h | `trending-up` | `trending-neutral` |
-| `binary_sensor.entsoe_trend_down_3h` | 📉 Trend malejący 3h | Ceny maleją przez 3h | `trending-down` | `trending-neutral` |
-| `binary_sensor.entsoe_in_cheapest_window` | 🔋 Okno ładowania | Teraz w najtańszym 3h oknie | `battery-charging` | `battery-outline` |
-| `binary_sensor.entsoe_in_most_expensive_window` | 💰 Okno sprzedaży | Teraz w najdroższym 3h oknie | `cash-check` | `cash-remove` |
+| `binary_sensor.entso_e_trend_rosnacy_3h` | 📈 Trend rosnący 3h | Ceny rosną przez 3h | `trending-up` | `trending-neutral` |
+| `binary_sensor.entso_e_trend_malejacy_3h` | 📉 Trend malejący 3h | Ceny maleją przez 3h | `trending-down` | `trending-neutral` |
+| `binary_sensor.entso_e_okno_ladowania_aktywne` | 🔋 Okno ładowania | Teraz w najtańszym 3h oknie | `battery-charging` | `battery-outline` |
+| `binary_sensor.entso_e_okno_sprzedazy_aktywne` | 💰 Okno sprzedaży | Teraz w najdroższym 3h oknie | `cash-check` | `cash-remove` |
 
 **Zastosowania w automatyzacjach:**
-- `in_cheapest_window = ON` → włącz ładowanie baterii z sieci
-- `in_most_expensive_window = ON` → eksportuj z baterii do sieci
-- `trend_up_3h = ON` → kupuj teraz, bo będzie drożej
-- `trend_down_3h = ON` → poczekaj, bo będzie taniej
+- `okno_ladowania_aktywne = ON` → włącz ładowanie baterii z sieci
+- `okno_sprzedazy_aktywne = ON` → eksportuj z baterii do sieci
+- `trend_rosnacy_3h = ON` → kupuj teraz, bo będzie drożej
+- `trend_malejacy_3h = ON` → poczekaj, bo będzie taniej
 
 ---
 
@@ -210,25 +221,25 @@ Spread to różnica między ceną sprzedaży (RCE) a kosztem zakupu (ENTSO-E all
 
 | Entity ID | Nazwa PL | Opis |
 |-----------|----------|------|
-| `sensor.entsoe_rce_price_now` | 💱 Cena RCE teraz | Bieżąca cena RCE w PLN/kWh |
-| `sensor.entsoe_spread_buy_vs_sell_now` | 📊 Spread kupno vs sprzedaż | RCE − all-in (zysk na handlu) |
-| `sensor.entsoe_spread_buy_vs_sell_peak_today` | 📈 Spread peak dzisiaj | Max RCE − Min all-in (potencjał dnia) |
-| `sensor.entsoe_spread_battery_arb_now` | 🔋 Spread arbitraż baterii | Spread z uwzgl. strat baterii |
+| `sensor.entso_e_cena_rce_teraz` | 💱 Cena RCE teraz | Bieżąca cena RCE w PLN/kWh |
+| `sensor.entso_e_spread_kupno_vs_sprzedaz` | 📊 Spread kupno vs sprzedaż | RCE − all-in (zysk na handlu) |
+| `sensor.entso_e_spread_peak_dzisiaj` | 📈 Spread peak dzisiaj | Max RCE − Min all-in (potencjał dnia) |
+| `sensor.entso_e_spread_arbitraz_baterii` | 🔋 Spread arbitraż baterii | Spread z uwzgl. strat baterii |
 
 ### Wzory spread
 
 ```
-spread_buy_vs_sell_now = RCE_teraz − all_in_cost_teraz
+spread_kupno_vs_sprzedaz = RCE_teraz − all_in_cost_teraz
 ```
 
 ```
-spread_peak_today = max(RCE_dzisiaj) − min(all_in_dzisiaj)
+spread_peak_dzisiaj = max(RCE_dzisiaj) − min(all_in_dzisiaj)
 ```
 
 ```
-spread_battery_arb = RCE_teraz − (all_in_cost_teraz / 0.90)
-                                                      ^^^^
-                                         sprawność baterii (round-trip)
+spread_arbitraz_baterii = RCE_teraz − (all_in_cost_teraz / 0.90)
+                                                          ^^^^
+                                             sprawność baterii (round-trip)
 ```
 
 ### Interpretacja spreadów
@@ -238,8 +249,8 @@ spread_battery_arb = RCE_teraz − (all_in_cost_teraz / 0.90)
 | spread > 0.10 | 🟢 **Opłacalny** | Warto sprzedawać / eksportować |
 | 0 < spread < 0.10 | 🟡 **Marginalny** | Niewielki zysk, warunkowo |
 | spread < 0 | 🔴 **Nieopłacalny** | NIE sprzedawaj — ładuj baterię |
-| spread_battery_arb > 0 | 🟢 **Arbitraż OK** | Opłaca się kupić i odsprzedać nawet z stratami baterii |
-| peak_today > 0.30 | ⚡ **Duży potencjał** | Planuj ładowanie na minimum i sprzedaż na peak |
+| spread_arbitraz_baterii > 0 | 🟢 **Arbitraż OK** | Opłaca się kupić i odsprzedać nawet z stratami baterii |
+| spread_peak > 0.30 | ⚡ **Duży potencjał** | Planuj ładowanie na minimum i sprzedaż na peak |
 
 ### Przykład liczbowy
 
@@ -298,9 +309,9 @@ W **Settings → Devices & Services → ENTSO-E Ceny Energii → Configure**:
 Po save + restart, w **Developer Tools → States** powinny pojawić się:
 
 ```
-sensor.entsoe_rce_price_now = -0.0013
-sensor.entsoe_spread_buy_vs_sell_now = -0.3213
-sensor.entsoe_spread_battery_arb_now = -0.3569
+sensor.entso_e_cena_rce_teraz = -0.0013
+sensor.entso_e_spread_kupno_vs_sprzedaz = -0.3213
+sensor.entso_e_spread_arbitraz_baterii = -0.3569
 ```
 
 > Ujemny spread = nie opłaca się sprzedawać w tej godzinie (cena RCE jest ujemna!).
@@ -365,7 +376,7 @@ automation:
   - alias: "ENTSO-E: Ładuj baterię w najtańszym oknie"
     trigger:
       - platform: state
-        entity_id: binary_sensor.entsoe_in_cheapest_window
+        entity_id: binary_sensor.entso_e_okno_ladowania_aktywne
         to: "on"
     condition:
       - condition: numeric_state
@@ -384,7 +395,7 @@ automation:
   - alias: "ENTSO-E: Eksportuj gdy spread opłacalny"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.entsoe_spread_buy_vs_sell_now
+        entity_id: sensor.entso_e_spread_kupno_vs_sprzedaz
         above: 0.10
     condition:
       - condition: numeric_state
@@ -403,7 +414,7 @@ automation:
   - alias: "ENTSO-E: Stop eksport — spread ujemny"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.entsoe_spread_buy_vs_sell_now
+        entity_id: sensor.entso_e_spread_kupno_vs_sprzedaz
         below: 0
     action:
       - service: switch.turn_off
@@ -418,15 +429,15 @@ automation:
   - alias: "ENTSO-E: Powiadomienie o dużym potencjale"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.entsoe_spread_buy_vs_sell_peak_today
+        entity_id: sensor.entso_e_spread_peak_dzisiaj
         above: 0.40
     action:
       - service: notify.mobile_app
         data:
           message: >
-            ⚡ Potencjał arbitrażu: {{ states('sensor.entsoe_spread_buy_vs_sell_peak_today') }} PLN/kWh!
-            Ładuj o {{ state_attr('sensor.entsoe_cheapest_hours_avg', 'start') }},
-            sprzedaj o {{ state_attr('sensor.entsoe_most_expensive_3h_avg', 'start') }}.
+            ⚡ Potencjał arbitrażu: {{ states('sensor.entso_e_spread_peak_dzisiaj') }} PLN/kWh!
+            Ładuj o {{ state_attr('sensor.entso_e_aktualna_cena_energii', 'cheapest_hours_start') }},
+            sprzedaj o {{ state_attr('sensor.entso_e_aktualna_cena_energii', 'most_expensive_3h_start') }}.
 ```
 
 ---
@@ -436,15 +447,17 @@ automation:
 ```
 ENTSO-E Ceny Energii
 ├── Sensors (22)
-│   ├── Cenowe: current_price, next_hour, min, max, avg
-│   ├── All-in: all_in_now, all_in_next, all_in_min, all_in_max
-│   ├── Okna:   cheapest_2h/3h/4h, expensive_2h/3h
-│   ├── Rank:   rank, percentile
-│   ├── Delta:  delta_1h, delta_3h
-│   └── Spread: rce_now, spread_now, spread_peak, battery_arb
+│   ├── Cenowe:  entso_e_aktualna_cena_energii, _cena_za_nastepna_godzine,
+│   │            _minimum_dzisiaj, _maksimum_dzisiaj, _srednia_dzisiaj
+│   ├── All-in:  entso_e_koszt_all_in_teraz, _nastepna_h, _min_dzisiaj, _max_dzisiaj
+│   ├── Okna:    entso_e_najtansze_2h/3h/4h_srednia, _najdrozsze_2h/3h_srednia
+│   ├── Rank:    entso_e_ranking_biezacej_godziny, _percentyl_biezacej_godziny
+│   ├── Delta:   entso_e_zmiana_ceny_1h, _zmiana_ceny_3h
+│   └── Spread:  entso_e_cena_rce_teraz, _spread_kupno_vs_sprzedaz,
+│                _spread_peak_dzisiaj, _spread_arbitraz_baterii
 ├── Binary Sensors (4)
-│   ├── trend_up_3h, trend_down_3h
-│   └── in_cheapest_window, in_most_expensive_window
+│   ├── entso_e_trend_rosnacy_3h, _trend_malejacy_3h
+│   └── entso_e_okno_ladowania_aktywne, _okno_sprzedazy_aktywne
 └── Config
     ├── API token, strefa, waluta, VAT, kurs NBP
     ├── Koszty: marża, akcyza, dystrybucja
@@ -453,4 +466,4 @@ ENTSO-E Ceny Energii
 
 ---
 
-*Dokumentacja wygenerowana dla ENTSO-E Ceny Energii v0.1.0 by Smarting HOME*
+*Dokumentacja wygenerowana dla ENTSO-E Ceny Energii v1.1.1 by Smarting HOME*

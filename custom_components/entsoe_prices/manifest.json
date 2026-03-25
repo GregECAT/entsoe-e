@@ -1,7 +1,7 @@
 {
   "domain": "entsoe_prices",
   "name": "ENTSO-E Ceny Energii",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "documentation": "https://github.com/GregECAT/entsoe-e",
   "issue_tracker": "https://github.com/GregECAT/entsoe-e/issues",
   "attribution": "Dane z platformy ENTSO-E Transparency. Kurs walut z API NBP. Wydawca: Smarting HOME (smartinghome.pl). Dokumentacja API: https://documenter.getpostman.com/view/7009892/2s93JtP3F6",
