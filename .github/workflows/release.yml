@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Verify manifest version matches tag
+        run: |
+          MANIFEST_VERSION=$(python3 -c "import json; print(json.load(open('custom_components/entsoe_prices/manifest.json'))['version'])")
+          TAG_VERSION="${{ steps.version.outputs.version }}"
+          if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ ERROR: manifest.json version ($MANIFEST_VERSION) does not match tag ($TAG_VERSION)"
+            echo "Run: python3 scripts/bump_version.py $TAG_VERSION"
+            exit 1
+          fi
+          echo "✅ Version match: $MANIFEST_VERSION"
+
+      - name: Create zip archive
+        run: |
+          cd custom_components/entsoe_prices
+          zip -r ../../entsoe_prices.zip . -x '__pycache__/*' '*.pyc'
+          cd ../..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.version }}"
+          body: |
+            ## ENTSO-E Ceny Energii v${{ steps.version.outputs.version }}
+
+            ### Instalacja / Aktualizacja
+            - **HACS**: Settings → Devices & Services → HACS → Aktualizuj
+            - **Ręcznie**: Pobierz `entsoe_prices.zip` i rozpakuj do `custom_components/entsoe_prices/`
+
+            ---
+            *Smarting HOME — [smartinghome.pl](https://smartinghome.pl)*
+          files: entsoe_prices.zip
+          generate_release_notes: true

@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ENTSO-E Energy Prices",
+        "description": "Configure the ENTSO-E Transparency Platform integration. An API key is required — get yours at https://transparency.entsoe.eu/",
+        "data": {
+          "api_token": "API Token (Security Token)",
+          "area": "Bidding Zone",
+          "currency": "Currency",
+          "energy_unit": "Energy Unit",
+          "vat": "VAT (%)",
+          "auto_rate": "Auto NBP exchange rate (EUR/PLN)",
+          "currency_rate": "Manual exchange rate"
+        },
+        "data_description": {
+          "api_token": "Your ENTSO-E Transparency Platform API token",
+          "area": "Select your bidding zone — for Poland select '🇵🇱 Polska'",
+          "auto_rate": "Automatically fetch EUR/PLN rate from the National Bank of Poland API",
+          "currency_rate": "Manual EUR/PLN rate — used when auto rate is disabled"
+        }
+      }
+    },
+    "error": {
+      "token_required": "API token is required",
+      "connection_failed": "Could not connect to ENTSO-E. Check your API token and bidding zone.",
+      "invalid_rate": "Invalid exchange rate — must be greater than 0"
+    },
+    "abort": {
+      "already_configured": "This bidding zone is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "options": {
+        "title": "ENTSO-E Settings",
+        "description": "Modify integration parameters",
+        "data": {
+          "api_token": "API Token (Security Token)",
+          "area": "Bidding Zone",
+          "currency": "Currency",
+          "energy_unit": "Energy Unit",
+          "vat": "VAT (%)",
+          "auto_rate": "Auto NBP exchange rate (EUR/PLN)",
+          "currency_rate": "Manual exchange rate"
+        }
+      }
+    },
+    "error": {
+      "token_required": "API token is required",
+      "invalid_rate": "Invalid exchange rate"
+    }
+  }
+}

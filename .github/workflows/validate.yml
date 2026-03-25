@@ -1,0 +1,52 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: pip install pytest aiohttp
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+
+      - name: Validate manifest.json
+        run: |
+          python3 -c "
+          import json, sys
+          m = json.load(open('custom_components/entsoe_prices/manifest.json'))
+          required = ['domain', 'name', 'version', 'documentation', 'codeowners', 'config_flow']
+          missing = [k for k in required if k not in m]
+          if missing:
+              print(f'❌ Missing keys: {missing}')
+              sys.exit(1)
+          print(f'✅ manifest.json OK — v{m[\"version\"]}')
+          "
+
+      - name: Validate hacs.json
+        run: |
+          python3 -c "
+          import json, sys
+          h = json.load(open('hacs.json'))
+          required = ['name', 'homeassistant']
+          missing = [k for k in required if k not in h]
+          if missing:
+              print(f'❌ Missing keys: {missing}')
+              sys.exit(1)
+          print(f'✅ hacs.json OK')
+          "

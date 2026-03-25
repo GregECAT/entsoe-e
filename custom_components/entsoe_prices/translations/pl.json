@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ENTSO-E Ceny Energii",
+        "description": "Skonfiguruj integrację z ENTSO-E Transparency Platform. Wymagany jest klucz API — uzyskasz go na https://transparency.entsoe.eu/",
+        "data": {
+          "api_token": "Klucz API (Security Token)",
+          "area": "Strefa cenowa (Bidding Zone)",
+          "currency": "Waluta",
+          "energy_unit": "Jednostka energii",
+          "vat": "VAT (%)",
+          "auto_rate": "Automatyczny kurs NBP (EUR/PLN)",
+          "currency_rate": "Kurs walutowy (ręczny)"
+        },
+        "data_description": {
+          "api_token": "Twój klucz API z platformy ENTSO-E Transparency",
+          "area": "Strefa cenowa — dla Polski wybierz '🇵🇱 Polska'",
+          "auto_rate": "Pobierz kurs EUR/PLN automatycznie z API Narodowego Banku Polskiego",
+          "currency_rate": "Ręczny kurs EUR/PLN — używany gdy auto-kurs jest wyłączony"
+        }
+      }
+    },
+    "error": {
+      "token_required": "Klucz API jest wymagany",
+      "connection_failed": "Nie udało się połączyć z ENTSO-E. Sprawdź klucz API i strefę cenową.",
+      "invalid_rate": "Nieprawidłowy kurs walutowy — musi być większy od 0"
+    },
+    "abort": {
+      "already_configured": "Ta strefa cenowa jest już skonfigurowana"
+    }
+  },
+  "options": {
+    "step": {
+      "options": {
+        "title": "Ustawienia ENTSO-E",
+        "description": "Zmień parametry integracji",
+        "data": {
+          "api_token": "Klucz API (Security Token)",
+          "area": "Strefa cenowa (Bidding Zone)",
+          "currency": "Waluta",
+          "energy_unit": "Jednostka energii",
+          "vat": "VAT (%)",
+          "auto_rate": "Automatyczny kurs NBP (EUR/PLN)",
+          "currency_rate": "Kurs walutowy (ręczny)"
+        }
+      }
+    },
+    "error": {
+      "token_required": "Klucz API jest wymagany",
+      "invalid_rate": "Nieprawidłowy kurs walutowy"
+    }
+  }
+}
