@@ -1,7 +1,7 @@
 # 🇵🇱 ENTSO-E Ceny Energii
 
 <p align="center">
-  <img src="images/logo.png" alt="ENTSO-E Ceny Energii by Smarting HOME" width="400">
+  <img src="images/logo.png" alt="ENTSO-E Ceny Energii by Smarting HOME" width="200">
 </p>
 
 <p align="center">
@@ -55,7 +55,7 @@ Domyślnie skonfigurowana dla **Polski** — z przeliczeniem na **PLN/kWh**, aut
 ## ⚙️ Konfiguracja
 
 <p align="center">
-  <img src="images/icon.png" alt="ENTSO-E Ceny Energii icon" width="80">
+  <img src="images/icon.png" alt="ENTSO-E Ceny Energii icon" width="56">
 </p>
 
 1. **Settings → Devices & Services → Add Integration**
@@ -71,6 +71,7 @@ Domyślnie skonfigurowana dla **Polski** — z przeliczeniem na **PLN/kWh**, aut
 | 🧾 **VAT (%)** | Stawka VAT | 23.0 |
 | 🏦 **Auto-kurs NBP** | Automatyczny kurs walut | ✅ Tak |
 | 📝 **Kurs ręczny** | Gdy auto-kurs wyłączony | 4.30 |
+| 🔌 **Encja RCE** | Entity ID sensora RCE PSE (spread) | `sensor.rce_pse_cena` |
 
 ### Jak uzyskać klucz API
 
@@ -82,7 +83,11 @@ Domyślnie skonfigurowana dla **Polski** — z przeliczeniem na **PLN/kWh**, aut
 
 ## 📊 Sensory (Entities)
 
-Po konfiguracji pojawią się sensory:
+> 📖 **Pełna dokumentacja sensorów:** [docs/SENSORS.md](docs/SENSORS.md) — wzory, instrukcje, przykłady automatyzacji
+
+Po konfiguracji pojawią się **26 sensorów** (22 zwykłe + 4 binarne):
+
+### Ceny hurtowe
 
 | Sensor | Entity ID | Opis |
 |--------|-----------|------|
@@ -91,7 +96,51 @@ Po konfiguracji pojawią się sensory:
 | 📉 Minimum | `sensor.entsoe_today_min` | Najniższa cena dnia |
 | 📈 Maksimum | `sensor.entsoe_today_max` | Najwyższa cena dnia |
 | 📊 Średnia | `sensor.entsoe_today_avg` | Średnia cena dnia |
-| 💰 Najtańsze 3h | `sensor.entsoe_cheapest_hours_avg` | Najtańsze 3 kolejne godziny |
+
+### Koszt all-in (realny koszt zakupu z sieci)
+
+| Sensor | Entity ID | Opis |
+|--------|-----------|------|
+| 💵 All-in teraz | `sensor.entsoe_all_in_cost_now` | Cena + marża + akcyza + dystrybucja + VAT |
+| 💵 All-in +1h | `sensor.entsoe_all_in_cost_next_hour` | Pełny koszt na kolejną godzinę |
+| ⬇️ All-in min | `sensor.entsoe_all_in_min_today` | Najniższy pełny koszt dnia |
+| ⬆️ All-in max | `sensor.entsoe_all_in_max_today` | Najwyższy pełny koszt dnia |
+
+### Okna cenowe
+
+| Sensor | Entity ID | Opis |
+|--------|-----------|------|
+| 💰 Najtańsze 2h/3h/4h | `sensor.entsoe_cheapest_*_avg` | Najlepsze okna ładowania |
+| 📈 Najdroższe 2h/3h | `sensor.entsoe_most_expensive_*_avg` | Najlepsze okna sprzedaży |
+
+### Analityka
+
+| Sensor | Entity ID | Opis |
+|--------|-----------|------|
+| 🔢 Ranking | `sensor.entsoe_rank_current_hour` | Pozycja cenowa (1 = najtańsza) |
+| 📊 Percentyl | `sensor.entsoe_percentile_current_hour` | 0% = najtaniej, 100% = najdrożej |
+| Δ Delta +1h/+3h | `sensor.entsoe_delta_1h` / `delta_3h` | Zmiana ceny w przyszłości |
+
+### Binary sensors (ON/OFF)
+
+| Sensor | Entity ID | ON gdy... |
+|--------|-----------|-----------|
+| 🔋 Okno ładowania | `binary_sensor.entsoe_in_cheapest_window` | Teraz w najtańszym 3h oknie |
+| 💰 Okno sprzedaży | `binary_sensor.entsoe_in_most_expensive_window` | Teraz w najdroższym 3h oknie |
+| 📈 Trend rosnący | `binary_sensor.entsoe_trend_up_3h` | Ceny rosną przez 3h |
+| 📉 Trend malejący | `binary_sensor.entsoe_trend_down_3h` | Ceny maleją przez 3h |
+
+### Sensory RCE Spread (opcjonalne — wymaga integracji RCE PSE)
+
+| Sensor | Entity ID | Opis |
+|--------|-----------|------|
+| 💱 Cena RCE teraz | `sensor.entsoe_rce_price_now` | Bieżąca cena RCE (PLN/kWh) |
+| 📊 Spread kupno/sprzedaż | `sensor.entsoe_spread_buy_vs_sell_now` | RCE sell − ENTSO-E all-in buy |
+| 📈 Spread peak dzisiaj | `sensor.entsoe_spread_buy_vs_sell_peak_today` | Max RCE − Min all-in (potencjał) |
+| 🔋 Arbitraż baterii | `sensor.entsoe_spread_battery_arb_now` | Spread z uwzgl. strat baterii (90%) |
+
+> **Spread > 0** = opłaca się sprzedawać | **Spread < 0** = ładuj baterię  
+> Instrukcja konfiguracji RCE: [docs/SENSORS.md#instrukcja-konfiguracji-rce](docs/SENSORS.md#instrukcja-konfiguracji-rce)
 
 ### Atrybuty sensora `current_price`
 

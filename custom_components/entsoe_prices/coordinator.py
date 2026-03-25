@@ -35,7 +35,11 @@ class EntsoeCoordinator(DataUpdateCoordinator[PriceData]):
         vat: float,
         currency_rate: float,
         auto_rate: bool,
+        seller_margin: float,
+        excise_tax: float,
+        distribution_rate: float,
         update_interval: timedelta,
+        rce_entity: str = "",
     ) -> None:
         super().__init__(
             hass,
@@ -52,11 +56,49 @@ class EntsoeCoordinator(DataUpdateCoordinator[PriceData]):
             vat=vat,
             currency_rate=currency_rate,
             auto_rate=auto_rate,
+            seller_margin=seller_margin,
+            excise_tax=excise_tax,
+            distribution_rate=distribution_rate,
         )
+        self._rce_entity = rce_entity
 
     async def _async_update_data(self) -> PriceData:
-        """Fetch data from ENTSO-E."""
+        """Fetch data from ENTSO-E and enrich with RCE spread."""
         try:
-            return await self.api_client.async_get_prices()
+            data = await self.api_client.async_get_prices()
         except EntsoeApiError as err:
             raise UpdateFailed(f"Błąd aktualizacji danych ENTSO-E: {err}") from err
+
+        # ── Read RCE data from HA state ──────────────────────────────
+        if self._rce_entity:
+            rce_price = self._read_rce_price()
+            rce_max = self._read_rce_max()
+            data = self.api_client.compute_spread(
+                data,
+                rce_price_mwh=rce_price,
+                rce_max_today_mwh=rce_max,
+            )
+
+        return data
+
+    def _read_rce_price(self) -> float | None:
+        """Read current RCE price from HA sensor (PLN/MWh)."""
+        state = self.hass.states.get(self._rce_entity)
+        if state is None or state.state in ("unavailable", "unknown"):
+            return None
+        try:
+            return float(state.state)
+        except (ValueError, TypeError):
+            return None
+
+    def _read_rce_max(self) -> float | None:
+        """Read RCE max today from HA (sensor.rce_max_today)."""
+        state = self.hass.states.get("sensor.rce_max_today")
+        if state is None or state.state in ("unavailable", "unknown"):
+            return None
+        try:
+            # RCE Max Today stores value in zł/kWh, convert to PLN/MWh
+            val = float(state.state)
+            return val * 1000.0
+        except (ValueError, TypeError):
+            return None

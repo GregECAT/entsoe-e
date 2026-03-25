@@ -3,28 +3,36 @@
     "step": {
       "user": {
         "title": "ENTSO-E Ceny Energii",
-        "description": "Skonfiguruj integrację z ENTSO-E Transparency Platform. Wymagany jest klucz API — uzyskasz go na https://transparency.entsoe.eu/",
+        "description": "Konfiguracja integracji z platformą ENTSO-E Transparency. Wymagany jest klucz API — uzyskaj go na https://transparency.entsoe.eu/",
         "data": {
-          "api_token": "Klucz API (Security Token)",
-          "area": "Strefa cenowa (Bidding Zone)",
+          "api_token": "Token API (Security Token)",
+          "area": "Strefa cenowa",
           "currency": "Waluta",
           "energy_unit": "Jednostka energii",
           "vat": "VAT (%)",
-          "auto_rate": "Automatyczny kurs NBP (EUR/PLN)",
-          "currency_rate": "Kurs walutowy (ręczny)"
+          "auto_rate": "Auto-kurs NBP (EUR/PLN)",
+          "currency_rate": "Kurs ręczny",
+          "seller_margin": "Marża sprzedawcy (za kWh)",
+          "excise_tax": "Akcyza (za kWh)",
+          "distribution_rate": "Stawka dystrybucyjna (za kWh)",
+          "rce_entity": "Encja RCE (spread)"
         },
         "data_description": {
-          "api_token": "Twój klucz API z platformy ENTSO-E Transparency",
-          "area": "Strefa cenowa — dla Polski wybierz '🇵🇱 Polska'",
-          "auto_rate": "Pobierz kurs EUR/PLN automatycznie z API Narodowego Banku Polskiego",
-          "currency_rate": "Ręczny kurs EUR/PLN — używany gdy auto-kurs jest wyłączony"
+          "api_token": "Twój token API z platformy ENTSO-E Transparency",
+          "area": "Wybierz swoją strefę cenową — dla Polski wybierz '🇵🇱 Polska'",
+          "auto_rate": "Automatyczne pobieranie kursu EUR/PLN z API Narodowego Banku Polskiego",
+          "currency_rate": "Ręczny kurs EUR/PLN — używany gdy auto-kurs jest wyłączony",
+          "seller_margin": "Marża Twojego sprzedawcy energii za kWh (np. 0,05 PLN/kWh)",
+          "excise_tax": "Akcyza za kWh (Polska: 0,005 PLN/kWh)",
+          "distribution_rate": "Stawka dystrybucyjna operatora sieci za kWh",
+          "rce_entity": "Entity ID sensora RCE PSE (np. sensor.rce_pse_cena). Zostaw puste, aby wyłączyć spread."
         }
       }
     },
     "error": {
-      "token_required": "Klucz API jest wymagany",
-      "connection_failed": "Nie udało się połączyć z ENTSO-E. Sprawdź klucz API i strefę cenową.",
-      "invalid_rate": "Nieprawidłowy kurs walutowy — musi być większy od 0"
+      "token_required": "Token API jest wymagany",
+      "connection_failed": "Nie udało się połączyć z ENTSO-E. Sprawdź token API i strefę cenową.",
+      "invalid_rate": "Nieprawidłowy kurs walut — musi być większy od 0"
     },
     "abort": {
       "already_configured": "Ta strefa cenowa jest już skonfigurowana"
@@ -36,19 +44,23 @@
         "title": "Ustawienia ENTSO-E",
         "description": "Zmień parametry integracji",
         "data": {
-          "api_token": "Klucz API (Security Token)",
-          "area": "Strefa cenowa (Bidding Zone)",
+          "api_token": "Token API (Security Token)",
+          "area": "Strefa cenowa",
           "currency": "Waluta",
           "energy_unit": "Jednostka energii",
           "vat": "VAT (%)",
-          "auto_rate": "Automatyczny kurs NBP (EUR/PLN)",
-          "currency_rate": "Kurs walutowy (ręczny)"
+          "auto_rate": "Auto-kurs NBP (EUR/PLN)",
+          "currency_rate": "Kurs ręczny",
+          "seller_margin": "Marża sprzedawcy (za kWh)",
+          "excise_tax": "Akcyza (za kWh)",
+          "distribution_rate": "Stawka dystrybucyjna (za kWh)",
+          "rce_entity": "Encja RCE (spread)"
         }
       }
     },
     "error": {
-      "token_required": "Klucz API jest wymagany",
-      "invalid_rate": "Nieprawidłowy kurs walutowy"
+      "token_required": "Token API jest wymagany",
+      "invalid_rate": "Nieprawidłowy kurs walut"
     }
   }
 }

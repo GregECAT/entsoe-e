@@ -13,14 +13,21 @@ from .const import (
     CONF_AREA,
     CONF_CURRENCY,
     CONF_CURRENCY_RATE,
+    CONF_DISTRIBUTION_RATE,
     CONF_ENERGY_UNIT,
+    CONF_EXCISE_TAX,
+    CONF_RCE_ENTITY,
+    CONF_SELLER_MARGIN,
     CONF_VAT,
     CONF_AUTO_RATE,
     DEFAULT_AREA,
     DEFAULT_CURRENCY,
+    DEFAULT_DISTRIBUTION_RATE,
     DEFAULT_ENERGY_UNIT,
+    DEFAULT_EXCISE_TAX,
+    DEFAULT_RCE_ENTITY,
+    DEFAULT_SELLER_MARGIN,
     DEFAULT_VAT,
-
     PLATFORMS,
     UPDATE_INTERVAL_MINUTES,
 )
@@ -29,12 +36,9 @@ from .coordinator import EntsoeCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 # ── Typed ConfigEntry (HA 2024.8+ best practice) ────────────────────────────
-# PEP 695 `type` statement requires Python 3.12+; HA 2026.3 uses Python 3.14.
-# Using typing_extensions / typing.TypeAlias for broader compatibility.
 try:
     from typing import TypeAlias
 except ImportError:
-    # Python 3.9 fallback — TypeAlias unavailable, use simple assignment
     EntsoeConfigEntry = ConfigEntry  # type: ignore[assignment]
 else:
     EntsoeConfigEntry: TypeAlias = ConfigEntry[EntsoeCoordinator]
@@ -55,13 +59,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: EntsoeConfigEntry) -> bo
         vat=data.get(CONF_VAT, DEFAULT_VAT),
         currency_rate=data.get(CONF_CURRENCY_RATE, 1.0),
         auto_rate=data.get(CONF_AUTO_RATE, True),
+        seller_margin=data.get(CONF_SELLER_MARGIN, DEFAULT_SELLER_MARGIN),
+        excise_tax=data.get(CONF_EXCISE_TAX, DEFAULT_EXCISE_TAX),
+        distribution_rate=data.get(CONF_DISTRIBUTION_RATE, DEFAULT_DISTRIBUTION_RATE),
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
+        rce_entity=data.get(CONF_RCE_ENTITY, DEFAULT_RCE_ENTITY),
     )
 
     await coordinator.async_config_entry_first_refresh()
 
-    # Store coordinator in runtime_data (HA 2024.8+ best practice)
-    # Automatically cleaned up on unload — no need for hass.data
     entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

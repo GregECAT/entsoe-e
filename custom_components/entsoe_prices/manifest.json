@@ -1,7 +1,7 @@
 {
   "domain": "entsoe_prices",
   "name": "ENTSO-E Ceny Energii",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "documentation": "https://github.com/GregECAT/entsoe-e",
   "issue_tracker": "https://github.com/GregECAT/entsoe-e/issues",
   "attribution": "Dane z platformy ENTSO-E Transparency. Kurs walut z API NBP. Wydawca: Smarting HOME (smartinghome.pl). Dokumentacja API: https://documenter.getpostman.com/view/7009892/2s93JtP3F6",
@@ -11,7 +11,7 @@
   ],
   "config_flow": true,
   "iot_class": "cloud_polling",
-  "integration_type": "hub",
+  "integration_type": "service",
   "loggers": [
     "custom_components.entsoe_prices"
   ]

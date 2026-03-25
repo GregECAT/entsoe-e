@@ -479,3 +479,203 @@ class TestSerialization:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+# ── Advanced Analytics Tests ─────────────────────────────────────────────────
+
+class TestWindowAnalytics:
+    """Tests for cheapest/most expensive windows."""
+
+    def _make_prices(self, values):
+        """Helper to create consecutive hourly prices."""
+        return [
+            ConvertedPrice(
+                start=datetime(2025, 1, 16, h, 0, tzinfo=timezone.utc),
+                end=datetime(2025, 1, 16, h + 1, 0, tzinfo=timezone.utc),
+                value=Decimal(str(v)),
+                raw_eur_mwh=Decimal("0"),
+            )
+            for h, v in enumerate(values)
+        ]
+
+    def test_most_expensive_3h(self, client):
+        """Test finding most expensive 3 consecutive hours."""
+        prices = self._make_prices(
+            [0.30, 0.25, 0.28, 0.35, 0.60, 0.80, 0.90, 0.50]
+        )
+        window = client._find_window(prices, 3, cheapest=False)
+        assert window is not None
+        assert len(window) == 3
+        # Hours 4, 5, 6 = 0.60 + 0.80 + 0.90 = 2.30 (most expensive)
+        assert window[0].start.hour == 4
+        assert window[2].start.hour == 6
+
+    def test_cheapest_2h(self, client):
+        """Test finding cheapest 2 consecutive hours."""
+        prices = self._make_prices(
+            [0.50, 0.45, 0.20, 0.22, 0.60, 0.80]
+        )
+        window = client._find_window(prices, 2, cheapest=True)
+        assert window is not None
+        assert len(window) == 2
+        # Hours 2, 3 = 0.20 + 0.22 = 0.42
+        assert window[0].start.hour == 2
+
+    def test_window_too_few_prices(self, client):
+        """Test window with fewer prices than requested."""
+        prices = self._make_prices([0.30, 0.25])
+        result = client._find_window(prices, 5, cheapest=True)
+        assert result is None
+
+
+class TestAllInCost:
+    """Tests for all-in cost calculation."""
+
+    def test_all_in_with_defaults(self):
+        """Test all-in cost with default Polish costs."""
+        session = MagicMock()
+        client = EntsoeApiClient(
+            session=session, api_token="t", area="PL",
+            vat=23.0, seller_margin=0.05, excise_tax=0.005,
+            distribution_rate=0.10, auto_rate=False,
+        )
+        # base_price = 0.50 PLN/kWh (already includes VAT on energy)
+        # additional = (0.05 + 0.005 + 0.10) * 1.23 = 0.155 * 1.23 = 0.19065
+        result = client._all_in_cost(0.50)
+        assert result == pytest.approx(0.6907, abs=0.001)
+
+    def test_all_in_zero_extras(self):
+        """Test all-in cost with no extra costs."""
+        session = MagicMock()
+        client = EntsoeApiClient(
+            session=session, api_token="t", area="PL",
+            vat=23.0, seller_margin=0.0, excise_tax=0.0,
+            distribution_rate=0.0, auto_rate=False,
+        )
+        result = client._all_in_cost(0.50)
+        assert result == 0.50
+
+
+class TestRankPercentile:
+    """Tests for rank and percentile calculations."""
+
+    def test_rank_cheapest_hour(self, client):
+        """Test rank when current hour is the cheapest."""
+        prices = [
+            ConvertedPrice(
+                start=datetime(2025, 1, 16, h, 0, tzinfo=timezone.utc),
+                end=datetime(2025, 1, 16, h + 1, 0, tzinfo=timezone.utc),
+                value=Decimal(str(v)),
+                raw_eur_mwh=Decimal("0"),
+            )
+            for h, v in [(10, 0.20), (11, 0.50), (12, 0.80)]
+        ]
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        rank, total = client._calculate_rank(prices, now)
+        assert rank == 1  # cheapest
+        assert total == 3
+
+    def test_rank_most_expensive_hour(self, client):
+        """Test rank when current hour is the most expensive."""
+        prices = [
+            ConvertedPrice(
+                start=datetime(2025, 1, 16, h, 0, tzinfo=timezone.utc),
+                end=datetime(2025, 1, 16, h + 1, 0, tzinfo=timezone.utc),
+                value=Decimal(str(v)),
+                raw_eur_mwh=Decimal("0"),
+            )
+            for h, v in [(10, 0.80), (11, 0.50), (12, 0.20)]
+        ]
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        rank, total = client._calculate_rank(prices, now)
+        assert rank == 3  # most expensive
+        assert total == 3
+
+    def test_percentile_middle(self, client):
+        """Test percentile at middle position."""
+        pct = client._calculate_percentile(2, 3)
+        assert pct == 50.0
+
+    def test_percentile_cheapest(self, client):
+        """Test percentile at cheapest position."""
+        pct = client._calculate_percentile(1, 24)
+        assert pct == pytest.approx(0.0, abs=0.1)
+
+
+class TestDeltasAndTrends:
+    """Tests for price deltas and trends."""
+
+    def _make_hourly(self, start_hour, values):
+        return [
+            ConvertedPrice(
+                start=datetime(2025, 1, 16, start_hour + i, 0, tzinfo=timezone.utc),
+                end=datetime(2025, 1, 16, start_hour + i + 1, 0, tzinfo=timezone.utc),
+                value=Decimal(str(v)),
+                raw_eur_mwh=Decimal("0"),
+            )
+            for i, v in enumerate(values)
+        ]
+
+    def test_delta_1h(self, client):
+        """Test +1h price delta."""
+        prices = self._make_hourly(10, [0.50, 0.70, 0.90, 0.60])
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        d1, d3 = client._calculate_deltas(prices, now)
+        assert d1 == pytest.approx(0.20, abs=0.001)
+        assert d3 == pytest.approx(0.10, abs=0.001)
+
+    def test_trend_up(self, client):
+        """Test rising trend over 3h."""
+        prices = self._make_hourly(10, [0.40, 0.50, 0.60, 0.70])
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        up, down = client._calculate_trends(prices, now)
+        assert up is True
+        assert down is False
+
+    def test_trend_down(self, client):
+        """Test falling trend over 3h."""
+        prices = self._make_hourly(10, [0.70, 0.60, 0.50, 0.40])
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        up, down = client._calculate_trends(prices, now)
+        assert up is False
+        assert down is True
+
+    def test_trend_no_data(self, client):
+        """Test trend with insufficient data."""
+        prices = self._make_hourly(10, [0.50, 0.60])
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        up, down = client._calculate_trends(prices, now)
+        assert up is None
+        assert down is None
+
+
+class TestActiveWindow:
+    """Tests for active window detection."""
+
+    def test_in_cheapest_window(self, client):
+        """Test detecting current hour in cheapest window."""
+        prices = [
+            ConvertedPrice(
+                start=datetime(2025, 1, 16, h, 0, tzinfo=timezone.utc),
+                end=datetime(2025, 1, 16, h + 1, 0, tzinfo=timezone.utc),
+                value=Decimal(str(v)),
+                raw_eur_mwh=Decimal("0"),
+            )
+            for h, v in [(10, 0.20), (11, 0.25), (12, 0.30)]
+        ]
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        assert client._is_in_window(prices, now) is True
+
+    def test_not_in_window(self, client):
+        """Test detecting current hour NOT in window."""
+        prices = [
+            ConvertedPrice(
+                start=datetime(2025, 1, 16, 15, 0, tzinfo=timezone.utc),
+                end=datetime(2025, 1, 16, 16, 0, tzinfo=timezone.utc),
+                value=Decimal("0.20"),
+                raw_eur_mwh=Decimal("0"),
+            ),
+        ]
+        now = datetime(2025, 1, 16, 10, 30, tzinfo=timezone.utc)
+        assert client._is_in_window(prices, now) is False
+

@@ -5,7 +5,7 @@ from typing import Final
 
 # ── Integration ──────────────────────────────────────────────────────────────
 DOMAIN: Final = "entsoe_prices"
-PLATFORMS: Final[list[str]] = ["sensor"]
+PLATFORMS: Final[list[str]] = ["sensor", "binary_sensor"]
 UPDATE_INTERVAL_MINUTES: Final = 30
 
 # ── ENTSO-E API ──────────────────────────────────────────────────────────────
@@ -24,6 +24,10 @@ CONF_ENERGY_UNIT: Final = "energy_unit"
 CONF_CURRENCY_RATE: Final = "currency_rate"
 CONF_VAT: Final = "vat"
 CONF_AUTO_RATE: Final = "auto_rate"
+CONF_SELLER_MARGIN: Final = "seller_margin"
+CONF_EXCISE_TAX: Final = "excise_tax"
+CONF_DISTRIBUTION_RATE: Final = "distribution_rate"
+CONF_RCE_ENTITY: Final = "rce_entity"
 
 # ── Defaults (Polska / PLN) ─────────────────────────────────────────────────
 DEFAULT_AREA: Final = "10YPL-AREA-----S"
@@ -31,6 +35,10 @@ DEFAULT_CURRENCY: Final = "PLN"
 DEFAULT_ENERGY_UNIT: Final = "kWh"
 DEFAULT_VAT: Final = 23.0
 DEFAULT_CURRENCY_RATE: Final = 4.30  # approx EUR/PLN fallback
+DEFAULT_SELLER_MARGIN: Final = 0.0
+DEFAULT_EXCISE_TAX: Final = 0.005
+DEFAULT_DISTRIBUTION_RATE: Final = 0.0
+DEFAULT_RCE_ENTITY: Final = "sensor.rce_pse_cena"
 
 # ── Supported values ─────────────────────────────────────────────────────────
 SUPPORTED_CURRENCIES: Final[set[str]] = {"EUR", "PLN"}

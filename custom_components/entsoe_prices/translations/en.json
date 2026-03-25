@@ -11,13 +11,21 @@
           "energy_unit": "Energy Unit",
           "vat": "VAT (%)",
           "auto_rate": "Auto NBP exchange rate (EUR/PLN)",
-          "currency_rate": "Manual exchange rate"
+          "currency_rate": "Manual exchange rate",
+          "seller_margin": "Seller margin (per kWh)",
+          "excise_tax": "Excise tax (per kWh)",
+          "distribution_rate": "Distribution rate (per kWh)",
+          "rce_entity": "RCE entity (spread)"
         },
         "data_description": {
           "api_token": "Your ENTSO-E Transparency Platform API token",
           "area": "Select your bidding zone — for Poland select '🇵🇱 Polska'",
           "auto_rate": "Automatically fetch EUR/PLN rate from the National Bank of Poland API",
-          "currency_rate": "Manual EUR/PLN rate — used when auto rate is disabled"
+          "currency_rate": "Manual EUR/PLN rate — used when auto rate is disabled",
+          "seller_margin": "Your energy seller's margin per kWh (e.g. 0.05 PLN/kWh)",
+          "excise_tax": "Excise tax per kWh (Poland: 0.005 PLN/kWh)",
+          "distribution_rate": "Distribution network rate per kWh",
+          "rce_entity": "RCE PSE sensor entity ID (e.g. sensor.rce_pse_cena). Leave empty to disable spread."
         }
       }
     },
@@ -42,7 +50,11 @@
           "energy_unit": "Energy Unit",
           "vat": "VAT (%)",
           "auto_rate": "Auto NBP exchange rate (EUR/PLN)",
-          "currency_rate": "Manual exchange rate"
+          "currency_rate": "Manual exchange rate",
+          "seller_margin": "Seller margin (per kWh)",
+          "excise_tax": "Excise tax (per kWh)",
+          "distribution_rate": "Distribution rate (per kWh)",
+          "rce_entity": "RCE entity (spread)"
         }
       }
     },
