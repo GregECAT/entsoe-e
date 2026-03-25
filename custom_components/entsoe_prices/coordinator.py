@@ -6,7 +6,8 @@ from typing import Any
 import logging
 
 from aiohttp import ClientSession
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
@@ -62,6 +63,32 @@ class EntsoeCoordinator(DataUpdateCoordinator[PriceData]):
         )
         self._rce_entity = rce_entity
 
+        # Track RCE sensor changes to recalculate spread in real-time
+        if rce_entity:
+            _LOGGER.debug("RCE spread enabled, tracking entity: %s", rce_entity)
+            async_track_state_change_event(
+                hass, [rce_entity], self._on_rce_state_change
+            )
+
+    @callback
+    def _on_rce_state_change(self, event) -> None:
+        """Handle RCE sensor state change — recalculate spread."""
+        if self.data is None:
+            return
+        rce_price = self._read_rce_price()
+        rce_max = self._read_rce_max()
+        _LOGGER.debug(
+            "RCE state changed → recalculating spread (rce=%.4f, max=%s)",
+            rce_price if rce_price is not None else 0,
+            rce_max,
+        )
+        self.data = self.api_client.compute_spread(
+            self.data,
+            rce_price_mwh=rce_price,
+            rce_max_today_mwh=rce_max,
+        )
+        self.async_set_updated_data(self.data)
+
     async def _async_update_data(self) -> PriceData:
         """Fetch data from ENTSO-E and enrich with RCE spread."""
         try:
@@ -73,6 +100,10 @@ class EntsoeCoordinator(DataUpdateCoordinator[PriceData]):
         if self._rce_entity:
             rce_price = self._read_rce_price()
             rce_max = self._read_rce_max()
+            _LOGGER.debug(
+                "RCE spread computation: entity=%s, rce_price=%s, rce_max=%s",
+                self._rce_entity, rce_price, rce_max,
+            )
             data = self.api_client.compute_spread(
                 data,
                 rce_price_mwh=rce_price,
@@ -84,11 +115,23 @@ class EntsoeCoordinator(DataUpdateCoordinator[PriceData]):
     def _read_rce_price(self) -> float | None:
         """Read current RCE price from HA sensor (PLN/MWh)."""
         state = self.hass.states.get(self._rce_entity)
-        if state is None or state.state in ("unavailable", "unknown"):
+        if state is None:
+            _LOGGER.warning("RCE entity %s not found in HA states", self._rce_entity)
+            return None
+        if state.state in ("unavailable", "unknown"):
+            _LOGGER.debug(
+                "RCE entity %s has state '%s', skipping", self._rce_entity, state.state
+            )
             return None
         try:
-            return float(state.state)
-        except (ValueError, TypeError):
+            val = float(state.state)
+            _LOGGER.debug("RCE price read: %s = %.4f PLN/MWh", self._rce_entity, val)
+            return val
+        except (ValueError, TypeError) as exc:
+            _LOGGER.warning(
+                "Cannot parse RCE price from %s (state='%s'): %s",
+                self._rce_entity, state.state, exc,
+            )
             return None
 
     def _read_rce_max(self) -> float | None:
